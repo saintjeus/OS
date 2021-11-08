@@ -2,7 +2,7 @@
 Jesus Barba CS474-Program 5
 Memory Management Simulation
 Purpose: Simulate memory management using swapping and first fit
-Strategy: Maintain linked lists for active processes and for free memory segments, as well as maintaining a counter for total free memory
+Strategy: Maintain linked lists for active processes and for free memory segments, as well as maintaining a counter for total free memory.
 INPUT FROM FILE IN COMMAND LINE (PREFERRED): line by line input from a txt file as a command line argument "./program5 < test.txt"
 Input line by line from stdin: will take input line by line from stdin and will run simulation with line
     -WILL TAKE INPUT ONLY IN THE FOLLOWING COMMAND TEMPLATES GIVEN IN THE ASSIGNMENT PROMPT
@@ -44,7 +44,7 @@ void printFreeTable(struct freeNode* freeTable){
 void printProcessTable(struct Process* processTable){
     struct Process* curr = processTable;
     while(curr!=NULL){
-        printf("name: %s, size: %d, base: %d\n", curr->name, curr->size, curr->base);
+        printf("Process: %s, Base: %d, Bound: %d\n", curr->name, curr->base, curr->base+curr->size);
         curr=curr->next;
     }
 }
@@ -130,11 +130,7 @@ void main(int argc, char * argv[]) {
             // format: line# DUMP
             // description: gives the base and bounds of all active processes
             if (strcmp(linetokens[1], "DUMP")==0){
-                struct Process* curr = ProcessTable;
-                while(curr != NULL){
-                    printf("Process %s: Base %d Bound %d\n", curr->name, curr->base, curr->base + curr->size);
-                    curr = curr->next;
-                }
+                printProcessTable(ProcessTable);
             }
         }
 
@@ -143,8 +139,6 @@ void main(int argc, char * argv[]) {
             // format: line# START process# size
             // description: simulate allocating memory to the process in memory
             if (strcmp(linetokens[1], "START")==0){
-                printf("reached START command\n");
-                printFreeTable(freeTable);
                 size = atoi(linetokens[3]);
                 //if there is enough free memory available, allocate it to the process
                 if (totalFreeMem >= size){
@@ -154,7 +148,6 @@ void main(int argc, char * argv[]) {
                     while (curr != NULL){
                         tempSize = curr -> size;
                         if (tempSize > size){
-                            printf("reached tempSize > size\n");
                             //first free memory slot can be allocated to process
                             struct Process * temp = (struct Process *)malloc(sizeof(struct Process));
                             temp -> base = curr -> base;
@@ -172,7 +165,6 @@ void main(int argc, char * argv[]) {
                             break;
                             
                         }
-                        printf("HERE, tempSize is %d, and size is %d\n", tempSize, size);
                         
                         if (size == tempSize){
                             struct Process * temp = (struct Process *)malloc(sizeof(struct Process));
@@ -186,14 +178,10 @@ void main(int argc, char * argv[]) {
                                 temp -> next = ProcessTable;
                             ProcessTable = temp;
                             totalFreeMem -= size;
-                            //FIXME figure out how to remove this free segment from free table
                             curr -> base = curr-> base +size;
                             curr ->size = curr->size - size;
-                            printf("reached THIS DONE THING HERE WIHTOUT SEGFAULTING :D\n");
                             break;
                         }
-                        //printf("reached THIS DONE THING HERE WIHTOUT SEGFAULTING :D\n");
-                        printf("iterating through process table\n");
                         prev = curr;
                         curr = curr -> next;
                     }
@@ -210,8 +198,6 @@ void main(int argc, char * argv[]) {
                         firstFreeMem += defragTemp->size;
                         defragTemp = defragTemp->next;
                     }
-                    printf("Defragmentation complete.\nTHis is what the process table looks like.\n");
-                    printProcessTable(ProcessTable);
                     struct Process * temp = (struct Process *)malloc(sizeof(struct Process));
                     temp -> name = strdup(linetokens[2]);
                     temp -> base = freeTable->base;
@@ -233,7 +219,6 @@ void main(int argc, char * argv[]) {
             // format: line# process# LOC address#
             // description: simulate translating virtual address to physical address
             if (strcmp(linetokens[2], "LOC")==0){
-                printf("reached LOC command\n");
                 struct Process* curr = ProcessTable;
                 address = atoi(linetokens[3]);
                 while(curr!=NULL){
@@ -246,18 +231,14 @@ void main(int argc, char * argv[]) {
                 if (curr == NULL){
                     printf("Process not found or invalid process given.\n");
                 }
-                //get process node
-                    //print base + address if found
-                //print error if process not found
             }
             
         }
         counter = 0;
         for (int k = 0; k < 4; k++)
             linetokens[k] = NULL;
-        printf("total free memory is %d\n", totalFreeMem); //FIXME delete line before submission
     }
-    // free(mem);
-    // for (int i = 0; i<4; i++)
-    //     free(linetokens[i]);
+    free(mem);
+    for (int i = 0; i<4; i++)
+         free(linetokens[i]);
 }
